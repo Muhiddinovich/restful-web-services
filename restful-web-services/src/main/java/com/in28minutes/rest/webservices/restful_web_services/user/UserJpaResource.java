@@ -25,11 +25,10 @@ import jakarta.validation.Valid;
 @RestController
 public class UserJpaResource {
 
-
 	private UserRepository repository;
-	
+
 	public UserJpaResource(UserRepository repository) {
-		this.repository=repository;
+		this.repository = repository;
 	}
 
 	// GET /users
@@ -45,7 +44,7 @@ public class UserJpaResource {
 	public EntityModel<User> retreiveUser(@PathVariable int id) {
 		Optional<User> user = repository.findById(id);
 		if (user.isEmpty()) {
-			throw new UserNotFoundException("id:"+id);
+			throw new UserNotFoundException("id:" + id);
 		}
 		EntityModel<User> entityModel = EntityModel.of(user.get());
 		WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retreiveAllUsers());
@@ -57,12 +56,22 @@ public class UserJpaResource {
 	@PostMapping("/jpa/users")
 	public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
 		User savedUser = repository.save(user);
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId()).toUri();
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId())
+				.toUri();
 		return ResponseEntity.created(location).build();
 	}
-	
+
 	@DeleteMapping("/jpa/users/{id}")
 	public void deleteUser(@PathVariable int id) {
 		repository.deleteById(id);
+	}
+
+	@GetMapping("/jpa/users/{id}/posts")
+	public List<Post> retrievePostsForUser(@PathVariable int id) {
+		Optional<User> user = repository.findById(id);
+		if (user.isEmpty()) {
+			throw new UserNotFoundException("id:" + id);
+		}
+		return user.get().getPost();
 	}
 }
